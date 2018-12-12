@@ -11,38 +11,38 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 
 DBNAME = 'marvel.db'
-conn = sqlite3.connect(DBNAME)
-cur = conn.cursor()
+# conn = sqlite3.connect(DBNAME)
+# cur = conn.cursor()
 
-statement = "DROP TABLE IF EXISTS 'Characters';"
-cur.execute(statement)
+# statement = "DROP TABLE IF EXISTS 'Characters';"
+# cur.execute(statement)
 
-statement = "DROP TABLE IF EXISTS 'Links';"
-cur.execute(statement)
+# statement = "DROP TABLE IF EXISTS 'Links';"
+# cur.execute(statement)
 
-statement = '''
-	CREATE TABLE 'Characters' (
-		'Id' INTEGER PRIMARY KEY AUTOINCREMENT,
-		'MarvelId' INT NOT NULL,
-		'Name' VARCHAR(128) NOT NULL,
-		'Comics' INT NOT NULL,
-		'Series' INT NOT NULL,
-		'Stories' INT NOT NULL,
-		'Events' INT NOT NULL);'''
-cur.execute(statement)
+# statement = '''
+# 	CREATE TABLE 'Characters' (
+# 		'Id' INTEGER PRIMARY KEY AUTOINCREMENT,
+# 		'MarvelId' INT NOT NULL,
+# 		'Name' VARCHAR(128) NOT NULL,
+# 		'Comics' INT NOT NULL,
+# 		'Series' INT NOT NULL,
+# 		'Stories' INT NOT NULL,
+# 		'Events' INT NOT NULL);'''
+# cur.execute(statement)
 
-statement = '''
-	CREATE TABLE 'Links' (
-		'Id' INTEGER PRIMARY KEY AUTOINCREMENT,
-		'MarvelId' INT NOT NULL,
-		'Name' VARCHAR(128) NOT NULL,
-		'Image' VARCHAR(128),
-		'Wiki' VARCHAR(128),
-		FOREIGN KEY (Id) REFERENCES Characters(Id));'''
-cur.execute(statement)
+# statement = '''
+# 	CREATE TABLE 'Links' (
+# 		'Id' INTEGER PRIMARY KEY AUTOINCREMENT,
+# 		'MarvelId' INT NOT NULL,
+# 		'Name' VARCHAR(128) NOT NULL,
+# 		'Image' VARCHAR(128),
+# 		'Wiki' VARCHAR(128),
+# 		FOREIGN KEY (Id) REFERENCES Characters(Id));'''
+# cur.execute(statement)
 
-conn.commit()
-conn.close()
+# conn.commit()
+# conn.close()
 
 #################################################################################################################################
 
@@ -133,7 +133,7 @@ def top(mode):
 	statement = 'SELECT Name, '+ str(mode) +' FROM Characters GROUP BY Name ORDER BY ' + str(mode) + ' DESC LIMIT 10'
 	cur.execute(statement)
 	results = cur.fetchall()
-	#print(results)
+
 	for heros in results:
 		name.append(heros[0])
 		num.append(heros[1])
@@ -272,61 +272,62 @@ def map():
 
 #################################################################################################################################
 
-conn = sqlite3.connect(DBNAME)
-cur = conn.cursor()
+if __name__ == "__main__":
 
-request_url = 'http://gateway.marvel.com/v1/public/characters'
-characters = {}
+	conn = sqlite3.connect(DBNAME)
+	cur = conn.cursor()
 
-#API hashing
-public = secret.api_key
-private = secret.private
+	request_url = 'http://gateway.marvel.com/v1/public/characters'
+	characters = {}
 
-ts = time.time()
-ts_str = str(int(ts))
-m_hash = hashlib.md5()
-ts_str_byte = bytes(ts_str, 'utf-8')
-private_key_byte = bytes(private, 'utf-8')
-public_key_byte = bytes(public, 'utf-8')
-m_hash.update(ts_str_byte + private_key_byte + public_key_byte)
-m_hash_str = str(m_hash.hexdigest())
+	#API hashing
+	public = secret.api_key
+	private = secret.private
 
-params = {'ts': ts_str, 'apikey': public, 'hash': m_hash_str, 'orderBy': '-modified', 'limit': 100}
-params = {}
+	ts = time.time()
+	ts_str = str(int(ts))
+	m_hash = hashlib.md5()
+	ts_str_byte = bytes(ts_str, 'utf-8')
+	private_key_byte = bytes(private, 'utf-8')
+	public_key_byte = bytes(public, 'utf-8')
+	m_hash.update(ts_str_byte + private_key_byte + public_key_byte)
+	m_hash_str = str(m_hash.hexdigest())
 
-listing = populate(request_url, params)
-char_id = 0
+	params = {'ts': ts_str, 'apikey': public, 'hash': m_hash_str, 'orderBy': '-modified', 'limit': 100}
 
-user_input = input("Enter command (or 'help' for options): ")
-while(user_input != "exit"):
-	parse = user_input.split()
+	listing = populate(request_url, params)
+	char_id = 0
 
-	if user_input == "list":
-		for i in range(0, len(listing)):
-			print(i, listing[i][0])
-	
-	elif(parse[0] == "stats"):
-		if(int(parse[1]) < 0 or int(parse[1]) > 90):
-			print("incorrect argument - try numbers from 0-100")
-		else:
-			char_stats(parse[1])
-	
-	elif(parse[0] == "top"):
-		if(parse[1] != "Comics" and parse[1] != "Series" and parse[1] != "Stories" and parse[1] != "Events"):
-			print("incorrect argument - try 'Comics', 'Series', 'Stories', or 'Events'")
-		else:
-			top(parse[1])
-	
-	elif(parse[0] == "image"):
-		image(parse[1])
-	
-	elif(user_input == "map"):
-		map()
-
-	else:
-		print("Error, not a valid command")
 	user_input = input("Enter command (or 'help' for options): ")
+	while(user_input != "exit"):
+		parse = user_input.split()
 
-conn.commit()
-conn.close()	
+		if user_input == "list":
+			for i in range(0, len(listing)):
+				print(i, listing[i][0])
+	
+		elif(parse[0] == "stats"):
+			if(int(parse[1]) < 0 or int(parse[1]) > 90):
+				print("incorrect argument - try numbers from 0-100")
+			else:
+				char_stats(parse[1])
+	
+		elif(parse[0] == "top"):
+			if(parse[1] != "Comics" and parse[1] != "Series" and parse[1] != "Stories" and parse[1] != "Events"):
+				print("incorrect argument - try 'Comics', 'Series', 'Stories', or 'Events'")
+			else:
+				top(parse[1])
+	
+		elif(parse[0] == "image"):
+			image(parse[1])
+	
+		elif(user_input == "map"):
+			map()
+
+		else:
+			print("Error, not a valid command")
+		user_input = input("Enter command (or 'help' for options): ")
+
+	conn.commit()
+	conn.close()	
 
